@@ -95,6 +95,16 @@ class Deck {
         return Deck.fromDeckData(data)
     }
 
+    getSwatchIdx(color){
+        var idx = this.swatch.indexOf(color)
+        if (idx == -1){
+            this.swatch.push(color)
+            idx = this.swatch.length - 1
+        }
+        return idx
+    }
+
+
 }
 
 class Card {
@@ -178,13 +188,13 @@ class Card {
         }
         else {
             for (let n=0; n<this.sprite.length; n++){
-                this.drawSprite(ctx, n)
+                this.drawSpritesOnCard(ctx, n)
             }
         }
 
     }
 
-    drawSprite(ctx, idx=0){
+    drawSpritesOnCard(ctx, idx=0){
         this.translateRotateToSprite(ctx, idx)
             ctx.drawImage(s_canvas, 0, 0, s_canvas_grid_size*s_canvas_cell_size*s_c_scale, s_canvas_grid_size*s_canvas_cell_size*s_c_scale)
         this.untranslateRotateSprite(ctx, idx)
@@ -207,6 +217,7 @@ class Card {
         ctx.translate(-s_canvas_x/8,-s_canvas_y/8)
         // ctx.restore()
     }
+
 }
 
 class CardSuit {
@@ -226,6 +237,40 @@ class CardSuit {
 
     updateSprite (grid){
         this.sprite = grid
+    }
+
+    update(mouse, ctx, pencilColor){
+        var local_x = Math.floor(mouse.x/s_canvas_cell_size)
+        var local_y = Math.floor(mouse.y/s_canvas_cell_size)
+        console.log(local_x, local_y)
+        this.draw(ctx)
+
+        ctx.fillStyle = pencilColor
+        this.drawPixle(ctx,local_x, local_y)
+
+        if (mouse.isClicked){
+            var colorIdx = deck.getSwatchIdx(pencilColor)
+            this.sprite[local_y][local_x] = colorIdx
+            deck.save()
+        }
+    }
+
+    draw(ctx){
+        console.log("newdraw")
+       ctx.clearRect(0, 0, s_canvas_cell_size*s_canvas_grid_size,s_canvas_cell_size*s_canvas_grid_size)
+        for( let y = 0; y < this.sprite.length; y++){
+            for( let x = 0; x < this.sprite[y].length; x++){
+                // (new Uint8Array(deck.swatch[suit.sprite[y][x]])).toHex()
+                // console.log((new Uint8Array(deck.swatch[suit.sprite[y][x]])).toHex())
+                // ctx.fillStyle = "#" + (new Uint8Array(deck.swatch[suit.sprite[y][x]])).toHex()
+                ctx.fillStyle = deck.swatch[this.sprite[y][x]]
+                this.drawPixle(ctx,x,y)
+            }
+        }
+    }
+
+    drawPixle(ctx, x, y){
+        ctx.fillRect(x*s_canvas_cell_size,y*s_canvas_cell_size,s_canvas_cell_size,s_canvas_cell_size)
     }
 
 

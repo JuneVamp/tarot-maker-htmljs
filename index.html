@@ -137,6 +137,7 @@
             flex-wrap: wrap;
         }
 
+
         
   
 
@@ -157,7 +158,10 @@
         <div id="sprite-editor" class="canvas">
             <canvas width="160px" height="160px"></canvas>
             <div id="swatch-selector">
-                <button id="color-button" data-color="black"></button>
+                <button id="color-button" data-color="black" style="--cp-border-radius-sm: 0rem;--cp-border-radius-lg: 0rem;--cp-box-shadow: 0;--cp-box-shadow-sm: 0;"></button>
+                <div id="swatch-container">
+
+                </div>
             </div>
         </div>
 
@@ -196,26 +200,18 @@
 
 <script>
     const picker = new ColorPicker('#color-button', {
-    //   toggleStyle: 'button',
-    //   headless: false,
-    //   container: null,
-    swatches: ["#00000000", "#ffffffff", "#777777ff", "#000000ff",'#d95d5d', '#db8525', '#e8c43c', '#bed649', '#9ecbdb', '#6399a5', '#c771a1'],
-        
-    // enableAlpha: true,
     enableEyedropper: true,
-    //   formats: ['hex', 'rgb', 'hsv', 'hsl'],
-    // color: 'red', // Color is set via data-color attribute
     defaultFormat: 'rgb',
     submitMode: 'instant', // 'instant' | 'confirm'
     showClearButton: true,
     dismissOnOutsideClick: true,
     dismissOnEscape: true,
     dialogPlacement: 'auto-end',
-    //   dialogOffset: 8
     })
-
     var pencilColor = "#000000ff"
     picker.on('pick', (c) => pencilColor = c.string("hex"))
+
+    
 
     deckData = defaultData
     var deck = Deck.fromDeckData(deckData)
@@ -316,16 +312,7 @@
     }
 
     function paintSuitCanvas(suit, ctx){
-       ctx.clearRect(0, 0, s_canvas_cell_size*s_canvas_grid_size,s_canvas_cell_size*s_canvas_grid_size)
-        for( let y = 0; y < suit.sprite.length; y++){
-            for( let x = 0; x < suit.sprite[y].length; x++){
-                // (new Uint8Array(deck.swatch[suit.sprite[y][x]])).toHex()
-                // console.log((new Uint8Array(deck.swatch[suit.sprite[y][x]])).toHex())
-                // ctx.fillStyle = "#" + (new Uint8Array(deck.swatch[suit.sprite[y][x]])).toHex()
-                ctx.fillStyle = deck.swatch[suit.sprite[y][x]]
-                ctx.fillRect(x*s_canvas_cell_size,y*s_canvas_cell_size,s_canvas_cell_size,s_canvas_cell_size)
-            }
-        }
+        suit.draw(ctx)
     }
 
     function unselectSuit(suitElement){
@@ -372,11 +359,13 @@
             if(selectedSuitName && selectedNumberName) paintCardDeckMaker(deck.getCard(selectedSuitName, selectedNumberName), c_ctx, s_canvas)
         }
     }
-    var mouse = {x: undefined, y: undefined, isClicked: false, start_x: undefined, start_y: undefined};
+    var mouse = {x: undefined, y: undefined, isClicked: false, start_x: undefined, start_y: undefined, currentCanvas: undefined};
+
     c_canvas.addEventListener("mousemove",(e)=> {
         // mouse_coordinate - element_position_offset - border_width
         mouse.x = e.clientX-c_canvas.offsetLeft-14;
         mouse.y = e.clientY-c_canvas.offsetTop-14;
+        mouse.currentCanvas = "card"
     });
     c_canvas.addEventListener("mousedown",(e)=> {mouse.isClicked = true; mouse.start_x=mouse.x; mouse.start_y=mouse.y});
     c_canvas.addEventListener("mouseup",(e)=> {
@@ -387,10 +376,27 @@
         console.log("saved")
     });
 
+    // var mouse = {x: undefined, y: undefined, isClicked: false, start_x: undefined, start_y: undefined};
+    s_canvas.addEventListener("mousemove",(e)=>{
+        mouse.x = e.clientX - s_canvas.offsetLeft;
+        mouse.y = e.clientY - s_canvas.offsetTop
+        mouse.currentCanvas = "suit"
+    });
+    s_canvas.addEventListener("mousedown",(e)=>{
+        mouse.isClicked = true;
+    })
+    s_canvas.addEventListener("mouseup",(e)=>{
+        mouse.isClicked = false
+        deck.save()
+    })
+
     function animate() {
         requestAnimationFrame(animate);
-        if(selectedSuitName && selectedNumberName){
+        if(selectedSuitName && selectedNumberName && mouse.currentCanvas=="card"){
             deck.getCard(selectedSuitName,selectedNumberName).update(mouse, c_ctx)
+        }
+        if(selectedSuitName && mouse.currentCanvas == "suit"){
+            deck.suits.find( (e) => e.name == selectedSuitName).update(mouse, s_ctx, pencilColor)
         }
     }
     
