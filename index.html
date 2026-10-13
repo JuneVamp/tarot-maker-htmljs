@@ -1,0 +1,439 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Tarot-maker</title>
+	<meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <style>
+
+            
+        /* probably should put in a container i don't like styling body the same way i like to leave the first page of a book empty*/
+        body {
+            margin: 0;
+            min-height: 100vh;
+            display: flex;
+            /* justify-content: ; */
+            flex-direction: column;
+            /* justify-content: space-between; */
+        }
+        
+        /* fake stuff, puts component after last element, and then space-between makes it so it is centered..... i dont like it*/
+        /* body::after{ 
+            content: "";
+        } */
+        
+        button#toggle-mode {
+            width: 10%;
+            height: 2em;
+            align-self: center;
+        }
+
+        #deck-maker {
+            display: flex;
+            flex-grow: 1;
+            align-items: stretch;
+            justify-content: space-evenly;
+            /* width: fit-content; */
+            gap: 20px;
+            margin: 20% auto;
+        }
+
+        canvas {
+            border:1px solid black;
+        }
+
+        #deck-maker .canvas{
+            align-self: center;
+        }
+
+
+        table, th, td {
+            border: 1px solid black;
+            border-collapse: collapse;
+        }
+        
+        table {
+            height: 100%;
+        }
+
+        tr.selected{
+            background-color: bisque;
+        }
+
+        tr td:last-child {
+            width: 1%;
+            white-space: nowrap;
+        }
+
+        td {
+            padding: 5px;
+        }
+
+        td.name {
+            text-align: center;
+        }
+
+        /* .card-canvas {
+            width: 200px ;
+            height: 300px;
+        } */
+
+        #tarot-reading {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: space-around;
+            flex-grow: 1;
+            margin: 30px auto 10% auto;
+            /* border: 1px solid black; */
+            
+        }
+
+        #reading-question {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 10px
+        }
+
+        #question-text-container{
+            display: flex;
+            resize: vertical;
+        }
+
+        #answer-text-container{
+            height: 4em;
+            width: 500px;
+        }
+
+        #reading-cards-container{
+            flex-grow: 2;
+            display: flex;
+            padding: 5%;
+            gap: 50px
+        }
+
+        .pull-card-container{
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .card-canvas{
+            border-image:  url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACoAAAAqCAYAAADFw8lbAAAA/0lEQVRYR+3S0YrDMAxE0eb/P7oFIYdW6DoTBZw6+DztDh5XyNlek9gmmfPSoO/9r5pTv33qcDDNoENd2ehQvUGPnrbX7Sndm4audKGgdG8aunZhPEO5ivqUmzR0VKRcRX3KTRo6KlKuoj7lJg0dFSlXUZ9y8x3Gg+3/0Z47KImbP0vt/5zrPT1RzxG1vwZVrY1G6kaI2l/fqGptNFI3QtT++kZVa6ORuhGi9vEbjdrB0dpMzx00bl19OkJ9yk0aOipSrqI+5SYNHRUpV1GfcpOGjoqUq6hPuUlD14qk1+0p3ZuGrnShoHRvGv6jRw969HRHSsuplKYZ9BaVjd7iA+MMbCuT0AuvAAAAEGRlQkdENjNCMUEyNzNDRUU4NjE3g2HA1QAAAABJRU5ErkJggg==") 14 /  14px / 0 round;
+            border-width:  14px;
+            border-style:  solid; 
+        }
+
+        .pull-card-container.even{
+            align-self: flex-end;
+        }
+
+        .card-meaning{
+            display: flex;
+            /* gap: 20px; */
+            width: 220px;
+            flex-wrap: wrap;
+        }
+
+        
+  
+
+
+    </style>
+</head>
+
+<body>
+
+    <button id="toggle-mode" onclick="toggle_visibility_flex('deck-maker'); toggle_visibility_flex('tarot-reading')">toggle-mode</button>
+    <div id="deck-maker" style="display: none;">
+        <div id="deck-numbers-container">
+        </div>
+
+        <div id="deck-suits-container" >
+        </div>
+
+        <div id="sprite-editor" class="canvas">
+            <canvas width="160px" height="160px"></canvas>
+        </div>
+
+        <div id="card-editor" class="canvas">
+            <canvas class="card-canvas"></canvas>
+        </div>
+
+    </div>
+
+    <div id="tarot-reading" style="display: flex;">
+        <div id="reading-question" >
+            <span id="question-prompt">The universe brings answers:</span>
+            <textarea id="question-text-container" contentEditable="true"> Wonder here</textarea>
+            <button id="ask-btn" onclick="pullCards(3)">Ask</button>
+        </div>
+
+        <div id="reading-cards-container"></div>
+
+        <div id="reading-answer">
+            <textarea id="answer-text-container" contentEditable="true"> Construct your answer </textarea>
+        </div>
+    </div>
+</body>
+
+
+<script type="text/javascript" src="lz-string.min.js"></script>
+<script type="text/javascript" src="utils.js"></script>
+<script type="text/javascript" src="deck.js"></script>
+<script type="text/javascript" src="defaultData.js"></script>
+
+<script>
+    // console.log(window.location)
+    // window.location.hash = "abcd"
+    // console.log(window.location)
+
+    deckData = defaultData
+
+    var deck = Deck.fromDeckData(deckData)
+    window.location.hash = LZString.compressToEncodedURIComponent(JSON.stringify(deckData))
+    // console.log(LZString.decompressFromEncodedURIComponent(window.location.hash.split("#")[1]))
+    // deck = Deck.fromDeckData(JSON.parse(LZString.decompressFromEncodedURIComponent(window.location.hash.split("#")[1])))
+    console.log(deck)
+
+    var deckNumbersContainer = document.querySelector("#deck-numbers-container")
+    var deckNumbersTable = document.createElement("table")
+    deckNumbersTable.className = "number"
+    deckNumbersContainer.appendChild(deckNumbersTable)
+    for (let deckNumber of deck.numbers){
+        var row = document.createElement("tr")
+        deckNumbersTable.appendChild(row)
+
+        var numberName = document.createElement("td")
+        numberName.className = "name td-edit"
+        numberName.innerText = deckNumber.name
+        numberName.setAttribute("numbername", deckNumber.name)
+        row.appendChild(numberName)
+
+        
+        var numberMeanings = document.createElement("td")
+        numberMeanings.className = "meanings td-edit"
+        numberMeanings.setAttribute("numbername", deckNumber.name)
+        numberMeanings.innerText = deckNumber.meaning.toString().replaceAll(",", ", ")
+        row.appendChild(numberMeanings)
+    }
+
+
+    var deckSuitsContainer = document.querySelector("#deck-suits-container")
+    var deckSuitsTable = document.createElement("table")
+    deckSuitsTable.className = "suit"
+    deckSuitsContainer.appendChild(deckSuitsTable)
+    for (let suit of deck.suits){
+        var row = document.createElement("tr")
+        deckSuitsTable.appendChild(row)
+
+        var suitName = document.createElement("td")
+        suitName.className = "name td-edit"
+        suitName.classList.r
+        suitName.innerText = suit.name
+        suitName.setAttribute("suitname", suit.name)
+        row.appendChild(suitName)
+        
+        var suitMeanings = document.createElement("td")
+        suitMeanings.className = "meanings td-edit"
+        suitMeanings.setAttribute("suitname", suit.name)
+        suitMeanings.innerText = suit.meaning.toString().replaceAll(",", ", ")
+        row.appendChild(suitMeanings)
+
+    }
+
+    const s_canvas_cell_size = 10
+    const s_canvas_grid_size = 16
+    const s_canvas_x = s_canvas_cell_size*s_canvas_grid_size
+    const s_canvas_y = s_canvas_x
+    const c_canvas_size_x = 200
+    const c_canvas_size_y = 300
+    const s_c_scale = 0.5
+
+    var s_canvas = document.querySelector("#sprite-editor canvas")
+    var s_ctx = s_canvas.getContext('2d')
+
+    var c_canvas = document.querySelector("#card-editor canvas")
+    c_canvas.width = c_canvas_size_x
+    c_canvas.height = c_canvas_size_y
+    var c_ctx = c_canvas.getContext('2d')
+
+    function getSuitElementByName(name){
+        for(let el of document.querySelectorAll(".suit .name")){
+            if (el.getAttribute("suitname") === name) return el
+        }
+        return null
+    }
+
+    function getNumberByName(name){
+        for(let el of document.querySelectorAll(".number .name")){
+            if (el.getAttribute("numbername") === name) return el
+        }
+        return null
+    }
+
+    function selectSuit(suitElement, suitName){
+        suitElement.contentEditable=true 
+        suitElement.parentElement.classList.add("selected")
+
+        var suit = deck.suits.find((e) => e.name == suitName)
+        console.log(suit)
+
+        // paint canvas 
+        paintSuitCanvas(suit, s_ctx)
+    }
+
+    function paintSuitCanvas(suit, ctx){
+       ctx.clearRect(0, 0, s_canvas_cell_size*s_canvas_grid_size,s_canvas_cell_size*s_canvas_grid_size)
+        for( let y = 0; y < suit.sprite.length; y++){
+            for( let x = 0; x < suit.sprite[y].length; x++){
+                // (new Uint8Array(deck.swatch[suit.sprite[y][x]])).toHex()
+                // console.log((new Uint8Array(deck.swatch[suit.sprite[y][x]])).toHex())
+                ctx.fillStyle = "#" + (new Uint8Array(deck.swatch[suit.sprite[y][x]])).toHex()
+                ctx.fillRect(x*s_canvas_cell_size,y*s_canvas_cell_size,s_canvas_cell_size,s_canvas_cell_size)
+            }
+        }
+    }
+
+    function unselectSuit(suitElement){
+       suitElement.contentEditable=false 
+       suitElement.parentElement.classList.remove("selected")
+    //    s_ctx.fillStyle = "#ffffff"
+       s_ctx.clearRect(0, 0, s_canvas_cell_size*s_canvas_grid_size,s_canvas_cell_size*s_canvas_grid_size)
+    }
+
+    function selectNumber(numberElement, numberName){
+       numberElement.contentEditable=true 
+       numberElement.parentElement.classList.add("selected")
+    }
+
+    function unselectNumber(numberElement){
+       numberElement.contentEditable=false 
+       numberElement.parentElement.classList.remove("selected")
+    }
+
+    function paintCardDeckMaker(card, ctx, s_canvas){
+        card.draw(ctx)
+    }
+
+    var selectedNumberName
+    var selectedSuitName
+
+    for(let e of document.getElementsByClassName("td-edit")){
+        e.onclick  = (event) => {
+            var prevSuit = getSuitElementByName(selectedSuitName)
+            if (e.getAttribute("suitname")){
+                selectedSuitName = e.getAttribute("suitname")
+                if(prevSuit) unselectSuit(prevSuit)
+                selectSuit(e, selectedSuitName)
+            }
+
+            var prevNumber = getNumberByName(selectedNumberName)
+            if (e.getAttribute("numbername")){
+                selectedNumberName = e.getAttribute("numbername")
+                if(prevNumber) unselectNumber(prevNumber) 
+                selectNumber(e, selectedNumberName)
+            }
+
+            console.log(selectedSuitName,selectedNumberName)
+            if(selectedSuitName && selectedNumberName) paintCardDeckMaker(deck.getCard(selectedSuitName, selectedNumberName), c_ctx, s_canvas)
+        }
+    }
+    var mouse = {x: undefined, y: undefined, isClicked: false};
+    c_canvas.addEventListener("mousemove",(e)=> {
+        // mouse_coordinate - element_position_offset - border_width
+        mouse.x = e.clientX-c_canvas.offsetLeft-14;
+        mouse.y = e.clientY-c_canvas.offsetTop-14;
+    });
+
+    function animate() {
+        requestAnimationFrame(animate);
+        if(selectedSuitName && selectedNumberName){
+            deck.getCard(selectedSuitName,selectedNumberName).update(mouse, c_ctx)
+        }
+    }
+    
+    animate()
+
+    
+</script>
+
+
+<script>
+    var questionPrompts = [
+        "The universe brings answers:",
+        "What brings you to this reading?",
+        "Ask your question."
+    ]
+    var randomQuestionPrompt = questionPrompts[Math.floor(Math.random()*questionPrompts.length)]
+    document.querySelector("#question-prompt").innerText = randomQuestionPrompt
+
+    document.querySelector("#question-text-container").value = "Wonder here"
+    document.querySelector("#answer-text-container").value = "Construct an answer"
+
+    var readingCardContainerEl = document.querySelector("#reading-cards-container")
+
+    function pullCards(count){
+        // if(readingCardContainerEl.childElementCount > 0)readingCardContainerEl.removeChild(readingCardContainerEl.childNodes)
+        while (readingCardContainerEl.firstChild) { readingCardContainerEl.removeChild(readingCardContainerEl.firstChild); }
+        var a = numberArray(deck.cards.length-1) // [1...N]
+        fy(a) // shuffles the array // everyday i'm shuffling
+
+        var sprite_canvas = new OffscreenCanvas(s_canvas_grid_size*s_canvas_cell_size, s_canvas_grid_size*s_canvas_cell_size)
+        var sprite_context = sprite_canvas.getContext("2d")
+
+        // card constructor
+        for (var n=0; n<count; n++){
+            var cardContainer = document.createElement("div")
+            cardContainer.className = "pull-card-container " + (n%2==0 ? "odd" : "even")
+            readingCardContainerEl.appendChild(cardContainer)
+        
+            var cardCanvas = document.createElement("canvas")
+            cardCanvas.className = "card-canvas " 
+            cardCanvas.width = c_canvas_size_x
+            cardCanvas.height = c_canvas_size_y
+            cardContainer.appendChild(cardCanvas)
+
+            var card = deck.cards[a[n]]
+            var cardName = card.number.name + " of " + card.suit.name
+            console.log(cardName)
+
+            paintSuitCanvas(card.suit, sprite_context)
+            paintCardDeckMaker(card, cardCanvas.getContext("2d"), sprite_canvas)
+
+            cardContainer.insertAdjacentHTML("afterbegin",
+                `
+                <div class="card-name">
+                    <span class="number">${card.number.name}</span> of <span class="suit">${card.suit.name}</span>
+                </div>
+                `
+            )
+
+            cardContainer.insertAdjacentHTML("beforeend",
+                `
+                <div class="card-meaning">
+                    <div class="number">
+                        <select name="meaning" class="meaning-select">
+                            <option value="">Number Meaning</option>
+                            ${card.number.meaning.toString().split(",").map( (e) => '<option value="'+e+'">'+e+"</option>").join("")}
+                        </select>
+                    </div>
+                    <div class="suit">
+                        <select name="meaning" class="meaning-select">
+                            <option value="">Suit Meaning</option>
+                            ${card.suit.meaning.toString().split(",").map( (e) => '<option value="'+e+'">'+e+"</option>").join("")}
+                        </select>
+                    </div>
+                </div>
+                `
+            )
+        }
+    }
+
+    // pullCards(3)
+
+</script>
+
+</html>
