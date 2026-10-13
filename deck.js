@@ -104,6 +104,24 @@ class Deck {
         return idx
     }
 
+    updateSuit(cur_name, meaning, new_name){
+        var suit = this.suits.find((e) => e.name == cur_name)
+        if(suit){
+            suit.name = new_name
+            suit.meaning = meaning
+        }
+        this.save()
+    }
+
+    updateNumber(cur_name, meaning, new_name){
+        var number = this.numbers.find((e) => e.name == cur_name)
+        if(number){
+            number.name = new_name
+            number.meaning = meaning
+        }
+        this.save()
+    }
+
 
 }
 
@@ -135,7 +153,7 @@ class Card {
             }
             a++
         }
-        this.draw(ctx)
+        this.draw(ctx, s_canvas)
         if(a==this.sprite.length) return
         
         if(hovering || mouse.start_x) {
@@ -170,7 +188,8 @@ class Card {
         }
     }
 
-    draw(ctx){
+    draw(ctx,sprite_canvas_ob){
+        console.log(sprite_canvas_ob)
         ctx.fillStyle = "#ffffff"
         ctx.fillRect(0, 0, c_canvas_size_x, c_canvas_size_y)
 
@@ -180,7 +199,7 @@ class Card {
                 ctx.translate(100,150)
                     ctx.rotate(transformation[1]*3.14*30/360);
                         ctx.translate(transformation[0][0]*0, transformation[0][1]*6);
-                            ctx.drawImage(s_canvas,0,0, s_canvas_grid_size*s_canvas_cell_size*s_c_scale, s_canvas_grid_size*s_canvas_cell_size*s_c_scale)
+                            ctx.drawImage(sprite_canvas_ob, 0,0, s_canvas_grid_size*s_canvas_cell_size*s_c_scale, s_canvas_grid_size*s_canvas_cell_size*s_c_scale)
                         ctx.translate(-transformation[0][0]*0, -transformation[0][1]*6);
                     ctx.rotate(-transformation[1]*3.14*30/360);
                 ctx.translate(-100,-150)
@@ -188,15 +207,15 @@ class Card {
         }
         else {
             for (let n=0; n<this.sprite.length; n++){
-                this.drawSpritesOnCard(ctx, n)
+                this.drawSpritesOnCard(ctx, n, sprite_canvas_ob)
             }
         }
 
     }
 
-    drawSpritesOnCard(ctx, idx=0){
+    drawSpritesOnCard(ctx, idx=0, sprite_canvas_ob){
         this.translateRotateToSprite(ctx, idx)
-            ctx.drawImage(s_canvas, 0, 0, s_canvas_grid_size*s_canvas_cell_size*s_c_scale, s_canvas_grid_size*s_canvas_cell_size*s_c_scale)
+            ctx.drawImage(sprite_canvas_ob, 0, 0, s_canvas_grid_size*s_canvas_cell_size*s_c_scale, s_canvas_grid_size*s_canvas_cell_size*s_c_scale)
         this.untranslateRotateSprite(ctx, idx)
     }
 
@@ -242,7 +261,6 @@ class CardSuit {
     update(mouse, ctx, pencilColor){
         var local_x = Math.floor(mouse.x/s_canvas_cell_size)
         var local_y = Math.floor(mouse.y/s_canvas_cell_size)
-        console.log(local_x, local_y)
         this.draw(ctx)
 
         ctx.fillStyle = pencilColor
@@ -251,12 +269,10 @@ class CardSuit {
         if (mouse.isClicked){
             var colorIdx = deck.getSwatchIdx(pencilColor)
             this.sprite[local_y][local_x] = colorIdx
-            deck.save()
         }
     }
 
     draw(ctx){
-        console.log("newdraw")
        ctx.clearRect(0, 0, s_canvas_cell_size*s_canvas_grid_size,s_canvas_cell_size*s_canvas_grid_size)
         for( let y = 0; y < this.sprite.length; y++){
             for( let x = 0; x < this.sprite[y].length; x++){
