@@ -147,7 +147,7 @@
 <body>
 
     <button id="toggle-mode" onclick="toggle_visibility_flex('deck-maker'); toggle_visibility_flex('tarot-reading')">toggle-mode</button>
-    <div id="deck-maker" style="display: none;">
+    <div id="deck-maker" style="display: flex;">
         <div id="deck-numbers-container">
         </div>
 
@@ -156,6 +156,9 @@
 
         <div id="sprite-editor" class="canvas">
             <canvas width="160px" height="160px"></canvas>
+            <div id="swatch-selector">
+                <button id="color-button" data-color="black"></button>
+            </div>
         </div>
 
         <div id="card-editor" class="canvas">
@@ -164,7 +167,7 @@
 
     </div>
 
-    <div id="tarot-reading" style="display: flex;">
+    <div id="tarot-reading" style="display: none;">
         <div id="reading-question" >
             <span id="question-prompt">The universe brings answers:</span>
             <textarea id="question-text-container" contentEditable="true"> Wonder here</textarea>
@@ -180,23 +183,50 @@
 </body>
 
 
-<script type="text/javascript" src="lz-string.min.js"></script>
+<!-- <link rel="stylesheet" href="coloris.min.css"/>
+<script src="coloris.min.js"></script> -->
+
+<link rel="stylesheet" href="lib/colorpicker.min.css">
+<script src="lib/colorpicker.iife.min.js"></script>
+<script type="text/javascript" src="lib/lz-string.min.js"></script>
+
 <script type="text/javascript" src="utils.js"></script>
 <script type="text/javascript" src="deck.js"></script>
 <script type="text/javascript" src="defaultData.js"></script>
 
 <script>
-    // console.log(window.location)
-    // window.location.hash = "abcd"
-    // console.log(window.location)
+    const picker = new ColorPicker('#color-button', {
+    //   toggleStyle: 'button',
+    //   headless: false,
+    //   container: null,
+    swatches: ["#00000000", "#ffffffff", "#777777ff", "#000000ff",'#d95d5d', '#db8525', '#e8c43c', '#bed649', '#9ecbdb', '#6399a5', '#c771a1'],
+        
+    // enableAlpha: true,
+    enableEyedropper: true,
+    //   formats: ['hex', 'rgb', 'hsv', 'hsl'],
+    // color: 'red', // Color is set via data-color attribute
+    defaultFormat: 'rgb',
+    submitMode: 'instant', // 'instant' | 'confirm'
+    showClearButton: true,
+    dismissOnOutsideClick: true,
+    dismissOnEscape: true,
+    dialogPlacement: 'auto-end',
+    //   dialogOffset: 8
+    })
+
+    var pencilColor = "#000000ff"
+    picker.on('pick', (c) => pencilColor = c.string("hex"))
 
     deckData = defaultData
-
     var deck = Deck.fromDeckData(deckData)
-    window.location.hash = LZString.compressToEncodedURIComponent(JSON.stringify(deckData))
-    // console.log(LZString.decompressFromEncodedURIComponent(window.location.hash.split("#")[1]))
-    // deck = Deck.fromDeckData(JSON.parse(LZString.decompressFromEncodedURIComponent(window.location.hash.split("#")[1])))
-    console.log(deck)
+
+    // deck.save()
+    deck = deck.load()
+    
+    // window.addEventListener("hashchange", () => {
+    //     window.location.reload()
+    // })
+
 
     var deckNumbersContainer = document.querySelector("#deck-numbers-container")
     var deckNumbersTable = document.createElement("table")
@@ -291,7 +321,8 @@
             for( let x = 0; x < suit.sprite[y].length; x++){
                 // (new Uint8Array(deck.swatch[suit.sprite[y][x]])).toHex()
                 // console.log((new Uint8Array(deck.swatch[suit.sprite[y][x]])).toHex())
-                ctx.fillStyle = "#" + (new Uint8Array(deck.swatch[suit.sprite[y][x]])).toHex()
+                // ctx.fillStyle = "#" + (new Uint8Array(deck.swatch[suit.sprite[y][x]])).toHex()
+                ctx.fillStyle = deck.swatch[suit.sprite[y][x]]
                 ctx.fillRect(x*s_canvas_cell_size,y*s_canvas_cell_size,s_canvas_cell_size,s_canvas_cell_size)
             }
         }
@@ -341,11 +372,19 @@
             if(selectedSuitName && selectedNumberName) paintCardDeckMaker(deck.getCard(selectedSuitName, selectedNumberName), c_ctx, s_canvas)
         }
     }
-    var mouse = {x: undefined, y: undefined, isClicked: false};
+    var mouse = {x: undefined, y: undefined, isClicked: false, start_x: undefined, start_y: undefined};
     c_canvas.addEventListener("mousemove",(e)=> {
         // mouse_coordinate - element_position_offset - border_width
         mouse.x = e.clientX-c_canvas.offsetLeft-14;
         mouse.y = e.clientY-c_canvas.offsetTop-14;
+    });
+    c_canvas.addEventListener("mousedown",(e)=> {mouse.isClicked = true; mouse.start_x=mouse.x; mouse.start_y=mouse.y});
+    c_canvas.addEventListener("mouseup",(e)=> {
+        mouse.isClicked = false;
+        mouse.start_x=undefined;
+        mouse.start_y=undefined;
+        deck.save()
+        console.log("saved")
     });
 
     function animate() {
