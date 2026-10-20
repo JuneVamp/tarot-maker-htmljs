@@ -18,6 +18,7 @@
             flex-direction: column;
             justify-content: space-between;
             /* padding-bottom: 30%; */
+            /* background-color: #fffdf6; */
         }
         
         /* fake stuff, puts component after last element, and then space-between makes it so it is centered..... i dont like it*/
@@ -29,6 +30,7 @@
             width: 10%;
             height: 2em;
             align-self: center;
+            margin: auto auto;
         }
 
         #deck-maker {
@@ -140,7 +142,39 @@
         }
 
 
-        
+        #about {
+            /* display: block; */
+            max-width: 500px;
+            width: 30%;
+            /* height: 40%; */
+            /* margin: auto auto; */
+            padding: 20px 20px;
+            border: 2px solid #686868;
+            background-color: #ece5ff;
+            font-size: large;
+            position: absolute;
+            top: calc(50vh - 250px);
+            left: calc(50vw - 250px);
+
+            box-shadow: 0px 0px 10px 10px rgba(0, 0, 0, 0.196);
+        }
+
+        header{
+
+        }
+
+        @font-face {
+            font-family: witchy;
+            src: url(assets/fonts/SunandMoon.ttf);
+        }
+        .witchy-text{
+            font-family: witchy;
+            font-size: 1.5em;
+        }
+
+        h1{
+            margin : 0px 0px
+        }
   
 
 
@@ -148,8 +182,24 @@
 </head>
 
 <body>
+    <header>
+        <center>
+        <h1> LEARN TO READ TAROT </h1><br>
+        <section class="witchy-text"> made with love without ai by June </section></center> <br>
+    </header>
 
-    <button id="toggle-mode" onclick="toggle_visibility_flex('deck-maker'); toggle_visibility_flex('tarot-reading')">toggle-mode</button>
+    <div id="about">
+        <center>
+        <h1> LEARN TO READ TAROT </h1><br>
+        <section class="witchy-text"> made with love by June </section></center> <br>
+        This site is for learning to read tarot cards, the meanings are what you give it and the card arrangements are what you make of it.<br><br>
+        Reading tarot cards is a personal proces, each person's interpretation is unique. I share with you mine, as one day you may share yours.
+        <center>
+            <button id="close-about" onclick="toggle_about()">Okay</button>
+        </center>
+    </div>
+
+    <button id="toggle-mode" onclick="toggle_modes()">toggle-mode</button>
     <div id="deck-maker" style="display: flex;">
         <div id="deck-numbers-container">
         </div>
@@ -162,7 +212,6 @@
             <div id="swatch-selector">
                 <button id="color-button" data-color="black" style="--cp-border-radius-sm: 0rem;--cp-border-radius-lg: 0rem;--cp-box-shadow: 0;--cp-box-shadow-sm: 0;"></button>
                 <div id="swatch-container">
-
                 </div>
             </div>
         </div>
@@ -199,8 +248,10 @@
 <script type="text/javascript" src="utils.js"></script>
 <script type="text/javascript" src="deck.js"></script>
 <script type="text/javascript" src="defaultData.js"></script>
+<!-- <script type="text/javascript" src="deobfuscated.js"></script> -->
 
 <script>
+
     const picker = new ColorPicker('#color-button', {
     enableEyedropper: true,
     defaultFormat: 'rgb',
@@ -220,6 +271,7 @@
 
     // deck.save()
     deck = deck.load()
+    console.log("loaded deck", JSON.stringify(deck.toDeckData()))
     
     // window.addEventListener("hashchange", () => {
     //     window.location.reload()
@@ -512,4 +564,22 @@
 
 </script>
 
+<script>
+    function toggle_about(){
+        document.getElementById("about").hidden = !document.getElementById("about").hidden
+    }
+    var mode = "reading"
+    function toggle_modes(){
+        toggle_visibility_flex('deck-maker'); 
+        toggle_visibility_flex('tarot-reading')
+
+        if(mode=="reading"){
+            mode = "making"
+            document.getElementById("toggle-mode").innerText = "Do a reading"
+        } else {
+            mode = "reading"
+            document.getElementById("toggle-mode").innerText = "Change your cards"
+        }
+    }
+</script>
 </html>
